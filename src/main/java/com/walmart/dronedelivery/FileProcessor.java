@@ -46,14 +46,14 @@ public class FileProcessor {
 	public void printDeliverySchedule(List<String> output, float nps) {
 		try {
 			Random random = new Random();
-			Path pathToFile = Paths.get("resource/output"+random.nextInt(100000)+".txt");
+			Path pathToFile = Paths.get(DroneDeliveryConstant.OUT_PUT_PATH+random.nextInt(100000)+DroneDeliveryConstant.TXT_EXT);
 			Files.createFile(pathToFile);
 			
 			PrintWriter outputFile = new PrintWriter(new FileWriter(pathToFile.toAbsolutePath().toString()));
 			for (String s : output) {
 				outputFile.println(s);
 			}
-			outputFile.println("NPS " + nps);
+			outputFile.println(DroneDeliveryConstant.NPS + nps);
 			outputFile.close();
 			System.out.println();
 			System.out.println("******* OUTPUT PATH *********");
