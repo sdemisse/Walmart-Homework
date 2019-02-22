@@ -17,6 +17,5 @@ public class App
 		FileProcessor fileProcesor = new FileProcessor();
 		OrderProcessor orderProcessor = new OrderProcessor();
 		fileProcesor.printDeliverySchedule(orderProcessor.scheduleDelivery(fileProcesor.getInputFile(inputFileName)),orderProcessor.calculateNPS());
-		System.out.println("NPS "+orderProcessor.calculateNPS());
     }
 }

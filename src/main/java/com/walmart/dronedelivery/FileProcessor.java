@@ -55,11 +55,11 @@ public class FileProcessor {
 			}
 			outputFile.println("NPS " + nps);
 			outputFile.close();
+			System.out.println();
 			System.out.println("******* OUTPUT PATH *********");
 			System.out.println(pathToFile.toAbsolutePath().toString());
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

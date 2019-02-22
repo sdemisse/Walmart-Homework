@@ -12,7 +12,7 @@ import java.util.Queue;
 /**
  * @author sinshaw
  *
- *         2019
+ * 2019
  */
 public class OrderProcessor {
 
@@ -29,7 +29,9 @@ public class OrderProcessor {
 	 * Assumption 1 - The sum of the time taken for all orders to deliver is always
 	 * less than or equal to 16 hour
 	 * 
-	 * Assumption 2- The drone know the distance after the order received -.
+	 * Assumption 2- The drone know the distance after the order received.
+	 * 
+	 * Assumption 3 - All the input will be on the correct format
 	 *
 	 */
 	public List<String> scheduleDelivery(List<Order> orders) {
@@ -41,39 +43,39 @@ public class OrderProcessor {
 
 		LocalTime firstOrderTimestamp = queue.peek().getTimestampInLocalTime();
 
-		LocalTime deliveryTime = firstOrderTimestamp.isBefore(LocalTime.of(6, 0)) ? LocalTime.of(6, 0, 0)
+		LocalTime nextDeliveryTime = firstOrderTimestamp.isBefore(LocalTime.of(6, 0)) ? LocalTime.of(6, 0, 0)
 				: firstOrderTimestamp;
 
 		while (!queue.isEmpty() || !readyToDelivery.isEmpty()) {
 			Order od = queue.peek();
 
-			if (!queue.isEmpty() && (od.getTimestampInLocalTime().isBefore(deliveryTime)
-					|| od.getTimestampInLocalTime().equals(deliveryTime))) {
+			if (!queue.isEmpty() && (od.getTimestampInLocalTime().isBefore(nextDeliveryTime)
+					|| od.getTimestampInLocalTime().equals(nextDeliveryTime))) {
 				readyToDelivery.add(queue.poll());
 			} else {
 
 				// When the next order is after the drone complete the order
 				// before and stayed idle
 				if (!queue.isEmpty() && readyToDelivery.isEmpty()) {
-					deliveryTime = queue.peek().getTimestampInLocalTime();
+					nextDeliveryTime = queue.peek().getTimestampInLocalTime();
 					readyToDelivery.add(queue.poll());
 				}
 				Order o = readyToDelivery.stream().min(Comparator.comparing(Order::getDronDeliveryTime))
 						.orElseThrow(NoSuchElementException::new);
-				// waiting time is the sum of waiting time from order placed to schedule
-				// delivery
-				// and the time takes to delivery
-				long waitingTime = ChronoUnit.SECONDS.between(o.getTimestampInLocalTime(), deliveryTime)
+
+				// Waiting time is will be the time between order placed and delivery time plus
+				// the time takes to delivery
+				long waitingTime = ChronoUnit.SECONDS.between(o.getTimestampInLocalTime(), nextDeliveryTime)
 						+ o.getDronDeliveryTime();
 
 				calculateScore(waitingTime);
 
 				// The time when the drone returned to the station
-				LocalTime drownReturnTime = deliveryTime.plusSeconds((o.getDronDeliveryTime() * 2));
+				LocalTime drownReturnTime = nextDeliveryTime.plusSeconds((o.getDronDeliveryTime() * 2));
 
-				outputFile.add(o.getId() + " " + deliveryTime);
+				outputFile.add(o.getId() + " " + nextDeliveryTime);
 
-				deliveryTime = drownReturnTime;
+				nextDeliveryTime = drownReturnTime;
 
 				readyToDelivery.remove(o);
 			}
@@ -84,8 +86,11 @@ public class OrderProcessor {
 	/**
 	 * Calculate score for promoter and detractor .
 	 *
-	 * Order waiting time < 2 hour ==> promoter Order waiting time < 4 hour and >= 2
-	 * ==> neutral Order waiting time >=4 ==> detractor
+	 * Order waiting time < 2 hour ==> Promoter
+	 * 
+	 * Order waiting time < 4 hour and >= 2==> Neutral
+	 * 
+	 * Order waiting time >=4 ==> Detractor
 	 * 
 	 */
 	private void calculateScore(long waitingTime) {
