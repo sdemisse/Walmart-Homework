@@ -51,6 +51,7 @@ public class OrderProcessor {
 					|| od.getTimestampInLocalTime().equals(deliveryTime))) {
 				readyToDelivere.add(queue.poll());
 			} else {
+				
 				// When the next order is after the drone complete the order
 				// before and stayed idle
 				if (!queue.isEmpty() && readyToDelivere.isEmpty()) {

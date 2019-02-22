@@ -5,7 +5,7 @@ package com.walmart.dronedelivery;
  *
  * 2019
  */
-public class App 
+public class App
 {
     public static void main( String[] args )
     {
