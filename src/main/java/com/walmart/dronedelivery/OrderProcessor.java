@@ -12,16 +12,16 @@ import java.util.Queue;
 /**
  * @author sinshaw
  *
- * 2019
+ *         2019
  */
 public class OrderProcessor {
 
 	/** The promoter count. */
 	private float promoterCnt = 0;
-	
+
 	/** The detractor count. */
 	private float detractorCnt = 0;
-	
+
 	/** The total order. */
 	private float totalOrder = 0;
 
@@ -36,7 +36,7 @@ public class OrderProcessor {
 
 		totalOrder = orders.size();
 		Queue<Order> queue = new LinkedList<>(orders);
-		List<Order> readyToDelivere = new LinkedList<>();
+		List<Order> readyToDelivery = new LinkedList<>();
 		List<String> outputFile = new ArrayList<>();
 
 		LocalTime firstOrderTimestamp = queue.peek().getTimestampInLocalTime();
@@ -44,21 +44,21 @@ public class OrderProcessor {
 		LocalTime deliveryTime = firstOrderTimestamp.isBefore(LocalTime.of(6, 0)) ? LocalTime.of(6, 0, 0)
 				: firstOrderTimestamp;
 
-		while (!queue.isEmpty() || !readyToDelivere.isEmpty()) {
+		while (!queue.isEmpty() || !readyToDelivery.isEmpty()) {
 			Order od = queue.peek();
-			
+
 			if (!queue.isEmpty() && (od.getTimestampInLocalTime().isBefore(deliveryTime)
 					|| od.getTimestampInLocalTime().equals(deliveryTime))) {
-				readyToDelivere.add(queue.poll());
+				readyToDelivery.add(queue.poll());
 			} else {
-				
+
 				// When the next order is after the drone complete the order
 				// before and stayed idle
-				if (!queue.isEmpty() && readyToDelivere.isEmpty()) {
+				if (!queue.isEmpty() && readyToDelivery.isEmpty()) {
 					deliveryTime = queue.peek().getTimestampInLocalTime();
-					readyToDelivere.add(queue.poll());
+					readyToDelivery.add(queue.poll());
 				}
-				Order o = readyToDelivere.stream().min(Comparator.comparing(Order::getDronDeliveryTime))
+				Order o = readyToDelivery.stream().min(Comparator.comparing(Order::getDronDeliveryTime))
 						.orElseThrow(NoSuchElementException::new);
 				// waiting time is the sum of waiting time from order placed to schedule
 				// delivery
@@ -67,29 +67,25 @@ public class OrderProcessor {
 						+ o.getDronDeliveryTime();
 
 				calculateScore(waitingTime);
-				
+
 				// The time when the drone returned to the station
 				LocalTime drownReturnTime = deliveryTime.plusSeconds((o.getDronDeliveryTime() * 2));
-				
-				outputFile.add(o.getId() + " " + deliveryTime);
-				if (drownReturnTime.isBefore(LocalTime.of(22, 00))) {
-					deliveryTime = drownReturnTime;
-				} else {
-					deliveryTime = LocalTime.of(6, 0,0);
-				}
 
-				readyToDelivere.remove(o);
+				outputFile.add(o.getId() + " " + deliveryTime);
+
+				deliveryTime = drownReturnTime;
+
+				readyToDelivery.remove(o);
 			}
 		}
 		return outputFile;
 	}
 
 	/**
-	 * Calculate score  for promoter and detractor .
+	 * Calculate score for promoter and detractor .
 	 *
-	 * Order waiting time < 2 hour ==> promoter
-	 * Order waiting time < 4 hour and >= 2 ==> neutral
-	 * Order waiting time >=4 ==> detractor
+	 * Order waiting time < 2 hour ==> promoter Order waiting time < 4 hour and >= 2
+	 * ==> neutral Order waiting time >=4 ==> detractor
 	 * 
 	 */
 	private void calculateScore(long waitingTime) {
